@@ -116,6 +116,8 @@ task copyPropertiesFile (type: Copy) {
 
 ospackage {
 
+    packageName = 'ice_' + buildType
+
     from(copyPropertiesFile) {
         into('/opt/ice')
         user = 'ubuntu'
@@ -141,8 +143,11 @@ ospackage {
     postInstall('chown -R ubuntu:ubuntu /opt/ice')
     postInstall('sudo -u ubuntu /opt/ice/scripts/postinstall.sh')
     postInstall('mkdir -p /var/log/ice; chown ubuntu:ubuntu /var/log/ice')
-    
+
+    // Disable tomcat start up (to stop port conflict with grails startup)
+    postInstall('rm /etc/init.d/tomcat7')
+
     // Make ice startup automatically
-    postInstall('cp /opt/ice/scripts/icedaemon /etc/init/icedaemon.conf')
+    postInstall('cp /opt/ice/scripts/icedaemon /etc/init/ice.conf')
 
 }

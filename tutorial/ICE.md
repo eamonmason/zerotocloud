@@ -36,15 +36,8 @@ The baking takes a LONG time. Be patient, it will get there in the end.
 
 ## Deploy ICE.
 
-ICE has two separate deployments, so you will do the following just like you did for Asgard, but once for the processor and once for the reader. 
-Return to [Step 13](AsgardStandalone.md) and perform the "Create Application", "Create an ELB", "Create Auto Scaling Group", and "View instance" pieces.
-Everything from the Health Check URL to the port numbers can stay the same, just use the name "ice".
+ICE has two separate deployments, so you deploy the AMI once for the processor and once for the reader. 
 
+This is not working with Asgard yet, so just simply deploy through the AMI through the AWS interface.
 
-1. Naviate to Asgard. This can be done by finding the DNS Name from the end of [Step 13](AsgardStandalone.md) or finding the Asgard ELB and using the DNS Name.
-2. Follow "Create Application", using the name "ice" instead of "asgard".
-3. Follow "Create an ELB", using the name "ice" instead of "asgard".
-4. Follow "Create Auto Scaling Group" using the name "ice" instead of "asgard".
-5. Follow "View instance" to get the DNS Name for ice's ELB, i.e. _ice--frontend_. It can take ICE quite a few minutes to start up.
-6. Using that DNS Name, visit _http://*ELB DNS name*/_. 
-
+Vist the instance's public DNS Name on port 7001, i.e. _http://*instance DNS name*:7001/ice/dashboard/summary_
