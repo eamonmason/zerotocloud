@@ -61,7 +61,7 @@ task filterScript (type: Copy) {
 
     from 'scripts'
     into new File(buildDir, 'scripts')
-    include '**/*.sh'
+    include '**/*'
     filter(ReplaceTokens, tokens: [awsAccessKeyId: AWSConfig.awsAccessKeyId, awsSecretAccessKey : AWSConfig.awsSecretAccessKey])
  
 }
@@ -129,7 +129,7 @@ ospackage {
         permissionGroup = 'ubuntu'
     }
 
-    from('./scripts') {
+    from(new File(buildDir,'scripts')) {
         into('/opt/ice/scripts')
         user = 'ubuntu'
         permissionGroup = 'ubuntu'
@@ -138,11 +138,10 @@ ospackage {
     requires('default-jdk')
     requires('tomcat7')
 
-
     postInstall('chown -R ubuntu:ubuntu /opt/ice')
     postInstall('sudo -u ubuntu /opt/ice/scripts/postinstall.sh')
 
     // Make ice startup automatically
-    postInstall('cp /opt/ice/scripts/icedaemon.sh /etc/init.d/icedaemon.sh')
+    postInstall('cp /opt/ice/scripts/icedaemon /etc/init.d/icedaemon')
 
 }
