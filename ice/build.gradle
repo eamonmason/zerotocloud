@@ -1,9 +1,20 @@
+// This script can create both an ICE reader AMI and an ICE processor AMI.  
+// Pass in -Ptype=reader or -Ptype=processor. If no type property is supplied then it defaults
+// to processor
+// You must supply properties for the source S3 'billingbucket',
+// and an S3 bucket for ICE to use 'icebucket'
+
 import zerotocloud.*
 import org.apache.tools.ant.filters.*
 import groovy.json.JsonSlurper
 
 def s3BillingBucket = ""
 def s3ICEBucket = ""
+def buildType = "processor"
+
+if (hasProperty("type") && type == "reader") {
+  buildType = "reader"
+}
 
 if (hasProperty("billingbucket") && hasProperty("icebucket")) {  
   s3BillingBucket = billingbucket
@@ -43,21 +54,43 @@ task accNum {
 
 }
 
+// Create startup script
+
+task filterScript (type: Copy) {
+  dependsOn 'accNum'
+
+    from 'scripts'
+    into new File(buildDir, 'scripts')
+    include '**/*.sh'
+    filter(ReplaceTokens, tokens: [awsAccessKeyId: AWSConfig.awsAccessKeyId, awsSecretAccessKey : AWSConfig.awsSecretAccessKey])
+ 
+}
+
 // Creates ice.writer properties
 
 task copyPropertiesFile (type: Copy) {
-  dependsOn 'accNum'
+  dependsOn 'filterScript'
 
 
     logger.info('Creating ice.properties...')
 
     from new File(cloneRepo.gitDir, "src/java/sample.properties") 
     into new File(cloneRepo.gitDir, 'src/java')
-    filter{
-        line -> line.contains('ice.processor=') ? 'ice.processor=true' : line     
-    }
-    filter {
+    if (buildType == "processor") {
+      filter{        
+          line -> line.contains('ice.processor=') ? 'ice.processor=true' : line     
+      }
+      filter {
           line -> line.contains('ice.reader=') ? 'ice.reader=false' : line     
+      }
+    }
+    else {
+      filter {  
+          line -> line.contains('ice.processor=') ? 'ice.processor=false' : line     
+      }
+      filter {
+          line -> line.contains('ice.reader=') ? 'ice.reader=true' : line     
+      }
     }
     filter {
       line -> line.contains('ice.billing_s3bucketname=') ? 'ice.billing_s3bucketname=' + s3BillingBucket : line         
@@ -96,26 +129,20 @@ ospackage {
         permissionGroup = 'ubuntu'
     }
 
+    from('./scripts') {
+        into('/opt/ice/scripts')
+        user = 'ubuntu'
+        permissionGroup = 'ubuntu'
+    }
+
     requires('default-jdk')
     requires('tomcat7')
 
-    postInstall('chown -R ubuntu:ubuntu /opt/ice')
 
-    postInstall('export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64')    
-    postInstall('echo export JAVA_HOME=$JAVA_HOME >> ~/.profile')    
-    postInstall('mkdir -p ' + readerDir)
-    postInstall('mkdir -p ' + workingDir)
-    
-    postInstall('cd /opt/ice; ./grailsw wrapper')
-    postInstall('cd /opt/ice; ./grailsw --refresh-dependencies compile')
     postInstall('chown -R ubuntu:ubuntu /opt/ice')
-    postInstall('chown -R ubuntu:ubuntu ~/.grails')
+    postInstall('sudo -u ubuntu /opt/ice/scripts/postinstall.sh')
 
-    // just need to put the following command in a startup script now
-    //postInstall('sudo -u ubuntu ./grailsw -Dice.s3AccessKeyId=' + AWSConfig.awsAccessKeyId + ' -Dice.s3SecretKey=' + AWSConfig.awsSecretAccessKey + ' run-app')        
+    // Make ice startup automatically
+    postInstall('cp /opt/ice/scripts/icedaemon.sh /etc/init.d/icedaemon.sh')
 
 }
-
-//configure ice.properties
-//  set reader true and processor false in ice.properties
-//create reader AMI
