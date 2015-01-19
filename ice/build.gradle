@@ -5,23 +5,19 @@ import groovy.json.JsonSlurper
 def s3BillingBucket = ""
 def s3ICEBucket = ""
 
-if (!hasProperty("billingbucket") || !hasProperty("icebucket")) {
-  println("You need to provide 'billingbucket' and 'icebucket properties, use '-P'") 
-}
-else {
+if (hasProperty("billingbucket") && hasProperty("icebucket")) {  
   s3BillingBucket = billingbucket
   s3ICEBucket = icebucket
 }
 
-def readerDir = new File(buildDir, "ice-reader")
-def workingDir = new File(buildDir, "ice-working-directory")
+def readerDir = new File("/opt/ice/ice-reader")
+def workingDir = new File("/opt/ice/ice-working-directory")
 
-task getAWSConfig {
+task AWSConfig {
   def awsConfig = new File(System.properties['user.home'], "/.aws/config")
   file(awsConfig).withReader { reader -> 
     def userProps = new Properties() 
     userProps.load(reader) 
-    //userProps.remove("[default]")
     logger.info("AWS properties: " + userProps)
     ext.awsSecretAccessKey = userProps.get("aws_secret_access_key")
     ext.awsAccessKeyId = userProps.get("aws_access_key_id")
@@ -32,7 +28,7 @@ task getAWSConfig {
 
 
 task cloneRepo(type: CloneRepo) {
-  dependsOn 'getAWSConfig'
+  dependsOn 'AWSConfig'
 
     logger.info('Cloning ice from github...')
     repository = 'https://github.com/Netflix/ice.git'
@@ -85,48 +81,41 @@ task copyPropertiesFile (type: Copy) {
   
 }
 
-
-// Make directories
-task makeDirectories {
-  dependsOn 'copyPropertiesFile'
-  readerDir.mkdir()
-  workingDir.mkdir()
-}
-
-
-// Populate appropriate sections
-
-task patchRepo {    
-    dependsOn  'makeDirectories'  
-    
-}
-
-
-// install java - do i really need to do this with zerotocloud though?
-//
-        
-//install java
-//set JAVA_HOME
-/*
 ospackage {
-    from(cloneRepo) {
-        into('/opt/aminator')
+
+    from(copyPropertiesFile) {
+        into('/opt/ice')
         user = 'ubuntu'
         permissionGroup = 'ubuntu'
     }
-    requires('java')    
-    //might need to do an apt-get
-    postInstall('echo export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64 >> ~/.profile')    
-    // maybe need to chown ice-reader and working dir
-    //    postInstall('chown -R ubuntu:ubuntu ice-reader')
+
+
+    from(cloneRepo) {
+        into('/opt/ice')
+        user = 'ubuntu'
+        permissionGroup = 'ubuntu'
+    }
+
+    requires('default-jdk')
+    requires('tomcat7')
+
+    postInstall('chown -R ubuntu:ubuntu /opt/ice')
+
+    postInstall('export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64')    
+    postInstall('echo export JAVA_HOME=$JAVA_HOME >> ~/.profile')    
+    postInstall('mkdir -p ' + readerDir)
+    postInstall('mkdir -p ' + workingDir)
+    
+    postInstall('cd /opt/ice; ./grailsw wrapper')
+    postInstall('cd /opt/ice; ./grailsw --refresh-dependencies compile')
+    postInstall('chown -R ubuntu:ubuntu /opt/ice')
+    postInstall('chown -R ubuntu:ubuntu ~/.grails')
+
+    // just need to put the following command in a startup script now
+    //postInstall('sudo -u ubuntu ./grailsw -Dice.s3AccessKeyId=' + AWSConfig.awsAccessKeyId + ' -Dice.s3SecretKey=' + AWSConfig.awsSecretAccessKey + ' run-app')        
 
 }
-*/
-//run ice grails wrapper
-//$ICE_DIR/grailsw wrapper
 
-//
 //configure ice.properties
 //  set reader true and processor false in ice.properties
 //create reader AMI
-
