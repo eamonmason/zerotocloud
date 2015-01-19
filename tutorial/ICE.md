@@ -20,11 +20,11 @@ To start generating the Billing Reports, follow these instructions.
 
 ## Working Bucket for ICE
 
-Create another S3 bucket for ICE to put its working files in
+Create another S3 bucket for ICE to put its working files in.
 
 ## Bake ICE
 
-We are going to bake two separate AMIs, one for the ICE processor and one for the ICE reader/UI. Not the properties in the build, and ensure that you set one for the billing bucket from above and another bucket for ICE to put working files in.
+We are going to bake two separate AMIs, one for the ICE processor and one for the ICE reader/UI. Note the properties that are required by gradle, and ensure that you set one for the billing bucket from above and another bucket for ICE to put working files in. The 'type' property can be either 'processor' or 'reader'. If none is supplied then 'type' defaults to 'processor'
 
     cd ~/zerotocloud
 	./gradlew -Ptype=processor -Pbillingbucket=<aws-billing-reports-bucket> -Picebucket=<ice-working-bucket> :ice:buildDeb
@@ -36,8 +36,8 @@ The baking takes a LONG time. Be patient, it will get there in the end.
 
 ## Deploy ICE.
 
-ICE has two separate deployments, so you deploy the AMI once for the processor and once for the reader. 
+ICE has two separate deployments: you deploy the AMI once for the processor and once for the reader. 
 
-This is not working with Asgard yet, so just simply deploy through the AMI through the AWS interface.
+Deployment is not working with Asgard yet, so just simply deploy through the AMI through the AWS interface.
 
 Vist the instance's public DNS Name on port 7001, i.e. _http://*instance DNS name*:7001/ice/dashboard/summary_
