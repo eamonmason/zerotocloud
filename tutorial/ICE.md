@@ -27,11 +27,10 @@ Create another S3 bucket for ICE to put its working files in
 We are going to bake two separate AMIs, one for the ICE processor and one for the ICE reader/UI. Not the properties in the build, and ensure that you set one for the billing bucket from above and another bucket for ICE to put working files in.
 
     cd ~/zerotocloud
-    ./gradlew :ice:buildDeb -Ptype=processor -Ps3AccessKeyId=@awsAccessKeyId@ -Ps3SecretKey=@awsSecretAccessKey@
-
+	./gradlew -Ptype=processor -Pbillingbucket=<aws-billing-reports-bucket> -Picebucket=<ice-working-bucket> :ice:buildDeb
     sudo aminate -e ec2_aptitude_linux -b ubuntu-base-ami-ebs ice/build/distributions/ice_processor_1.0.0_all.deb
-	./gradlew :ice:buildDeb -Ptype=reader -Ps3AccessKeyId=@awsAccessKeyId@ -Ps3SecretKey=@awsSecretAccessKey@
-    sudo aminate -e ec2_aptitude_linux -b ubuntu-base-ami-ebs ice/build/distributions/ice_reader_1.0.0_all.deb
+	./gradlew -Ptype=reader -Pbillingbucket=<aws-billing-reports-bucket> -Picebucket=<ice-working-bucket> :ice:buildDeb
+	sudo aminate -e ec2_aptitude_linux -b ubuntu-base-ami-ebs ice/build/distributions/ice_reader_1.0.0_all.deb
 
 The baking takes a LONG time. Be patient, it will get there in the end.
 
