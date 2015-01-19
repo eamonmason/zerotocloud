@@ -1,9 +1,4 @@
-description "netflix-ice"
-
-start on net-device-up IFACE=eth0
+start on run level [23]
 stop on run level [!2345]
-env enabled=1
 
-exec start-stop-daemon --start --chuid ubuntu --chdir /opt/ice/ --exec /opt/ice/scripts/runit.sh
-
-
+exec sudo -u ubuntu /opt/ice/scripts/runit.sh

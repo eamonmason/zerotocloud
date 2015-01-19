@@ -140,8 +140,9 @@ ospackage {
 
     postInstall('chown -R ubuntu:ubuntu /opt/ice')
     postInstall('sudo -u ubuntu /opt/ice/scripts/postinstall.sh')
-
+    postInstall('mkdir -p /var/log/ice; chown ubuntu:ubuntu /var/log/ice')
+    
     // Make ice startup automatically
-    postInstall('cp /opt/ice/scripts/icedaemon /etc/init.d/icedaemon')
+    postInstall('cp /opt/ice/scripts/icedaemon /etc/init/icedaemon.conf')
 
 }

@@ -45,6 +45,6 @@ Everything from the Health Check URL to the port numbers can stay the same, just
 2. Follow "Create Application", using the name "ice" instead of "asgard".
 3. Follow "Create an ELB", using the name "ice" instead of "asgard".
 4. Follow "Create Auto Scaling Group" using the name "ice" instead of "asgard".
-5. Follow "View instance" to get the DNS Name for ice's ELB, i.e. _ice--frontend_. It can ICE quite a few minutes to start up.
+5. Follow "View instance" to get the DNS Name for ice's ELB, i.e. _ice--frontend_. It can take ICE quite a few minutes to start up.
 6. Using that DNS Name, visit _http://*ELB DNS name*/_. 
 
